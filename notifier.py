@@ -5,7 +5,7 @@ from typing import Optional, Callable
 import aiojobs
 
 import bili_statistics
-from user import User
+from user.user import User
 from tasks.base_class import TaskType, UniqueType, How2Call
 from printer import info as print
 
@@ -34,7 +34,9 @@ class Users:
                     'open_silver_box',
                     'join_storm_raffle',
                     'join_guard_raffle',
-                    'join_tv_raffle'):
+                    'join_tv_raffle',
+                    'join_pk_raffle'
+            ):
                 continue
             if task_name != 'null':  # null 就忽略过滤，直接参与
                 if f'probability_{task_name}' in user.task_arrangement:  # 平均概率筛选
@@ -105,7 +107,7 @@ class Notifier:
                 bili_statistics.done_unique_task(user.id, task)
                 return result
             except asyncio.CancelledError:
-                print(f'❌取消正在进行的{func} {user.id}任务')
+                print(f'CONFIRMED CANCEL {user} {func}')
                 bili_statistics.cancel_unique_task(user.id, task)
         else:
             print(f'重复推送{func} {user.id}（此为debug信息忽略即可）')
@@ -116,6 +118,7 @@ class Notifier:
         try:
             return await func(user, *args, **kwargs)
         except asyncio.CancelledError:
+            print(f'CONFIRMED CANCEL {user} {func}')
             return None
 
     async def run_sched_func(self, func: Callable, *args, **kwargs):
